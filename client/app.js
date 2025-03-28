@@ -1,8 +1,8 @@
-// app.js
+// Main Application Module
 var eventHubApp = angular.module('eventHubApp', ['ngRoute']);
 
 // Route Configuration
-eventHubApp.config(function($routeProvider) {
+eventHubApp.config(['$routeProvider', function($routeProvider) {
     $routeProvider
         .when('/', {
             templateUrl: 'pages/landing.html',
@@ -28,7 +28,19 @@ eventHubApp.config(function($routeProvider) {
             templateUrl: 'pages/vendor-profile.html',
             controller: 'VendorProfileController'
         })
+        .when('/event-details/:id', {
+            templateUrl: 'pages/event-details.html',
+            controller: 'EventDetailsController'
+        })
         .otherwise({
             redirectTo: '/'
         });
-});
+}]);
+
+// Global Error Handling
+eventHubApp.run(['$rootScope', '$location', function($rootScope, $location) {
+    $rootScope.$on('$routeChangeError', function(event, current, previous, rejection) {
+        console.error('Route change error:', rejection);
+        $location.path('/');
+    });
+}]);
