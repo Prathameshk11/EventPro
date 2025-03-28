@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html ng-app="eventHubApp">
+<head>
+    <title>EventHub - Event Management Platform</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <!-- Navigation Component -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#/">EventHub</a>
+        <div class="navbar-nav">
+            <a class="nav-item nav-link" href="#/home">Home</a>
+            <a class="nav-item nav-link" href="#/search">Search</a>
+            <a class="nav-item nav-link" href="#/vendor-registration">Vendor Registration</a>
+            <a class="nav-item nav-link" href="#/venue-booking">Book Venue</a>
+        </div>
+    </nav>
+
+    <!-- Dynamic Content Area -->
+    <div ng-view></div>
+
+    <!-- JavaScript Dependencies -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+    
+    <!-- Application Configuration -->
+    <script src="app.js"></script>
+    
+    <!-- Controllers -->
+    <script src="controllers/landingController.js"></script>
+    <script src="controllers/homeController.js"></script>
+    <script src="controllers/searchController.js"></script>
+    <script src="controllers/vendorRegistrationController.js"></script>
+    <script src="controllers/venueBookingController.js"></script>
+</body>
+</html>
