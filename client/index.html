@@ -1,84 +1,556 @@
 <!DOCTYPE html>
-<html ng-app="eventHubApp" lang="en">
+<html lang="en" ng-app="eventApp">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EventHub - Event Management Platform</title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Custom CSS -->
+    <title>EventPro - Your Event Management Solution</title>
     <link rel="stylesheet" href="styles/main.css">
-    
-    <!-- Font Awesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#!/">
-                <i class="fas fa-calendar-alt me-2"></i>EventHub
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#!/home">
-                            <i class="fas fa-home me-1"></i>Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#!/search">
-                            <i class="fas fa-search me-1"></i>Search
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#!/vendor-registration">
-                            <i class="fas fa-plus-circle me-1"></i>Vendor Registration
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#!/venue-booking">
-                            <i class="fas fa-building me-1"></i>Book Venue
-                        </a>
-                    </li>
+<body ng-controller="MainController">
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <h1>Event<span>Pro</span></h1>
+            </div>
+            <div class="nav-links" ng-class="{'active': isMenuOpen}">
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#vendors">Vendors</a></li>
+                    <li><a href="#venues">Venues</a></li>
+                    <li><a href="#events">Events</a></li>
+                    <li><a href="#about">About</a></li>
                 </ul>
             </div>
+            <div class="auth-buttons">
+                <button class="btn login-btn" ng-click="openLoginModal()">Login</button>
+                <button class="btn signup-btn" ng-click="openSignupModal()">Sign Up</button>
+            </div>
+            <div class="user-menu" ng-if="isLoggedIn()">
+                <div class="user-avatar" ng-click="toggleUserMenu()">
+                    <img ng-src="{{currentUser.profileImage || 'assets/images/prof1-40.jpeg'}}" alt="{{currentUser.name}}">
+                    <span>{{currentUser.name}}</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="user-dropdown" ng-class="{'show': showUserMenu}">
+                    <ul>
+                        <li><a href="/{{currentUser.role}}/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                        <li><a href="/{{currentUser.role}}/profile.html"><i class="fas fa-user"></i> Profile</a></li>
+                        <li ng-if="currentUser.role === 'client'"><a href="/client/bookings.html"><i class="fas fa-calendar-check"></i> My Bookings</a></li>
+                        <li ng-if="currentUser.role === 'vendor'"><a href="/vendor/services.html"><i class="fas fa-list"></i> My Services</a></li>
+                        <li><a href="#" ng-click="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="hamburger" ng-click="toggleMenu()">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <h1>Find the Perfect Vendors for Your Event</h1>
+                <p>Discover, book, and manage all your event needs in one place</p>
+                <div class="search-container">
+                    <form class="search-form" ng-submit="searchAll()">
+                        <div class="search-group">
+                            <i class="fas fa-search"></i>
+                            <input type="text" ng-model="searchQuery.term" placeholder="What are you looking for?">
+                        </div>
+                        <div class="search-group">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <input type="text" ng-model="searchQuery.location" placeholder="Location">
+                        </div>
+                        <div class="search-group">
+                            <i class="fas fa-calendar-alt"></i>
+                            <input type="date" ng-model="searchQuery.date" placeholder="Date">
+                        </div>
+                        <button type="submit" class="search-btn">Search</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="categories">
+            <div class="section-header">
+                <h2>Browse by Category</h2>
+                <p>Find the perfect service for your event</p>
+            </div>
+            <div class="category-grid">
+                <div class="category-card" ng-repeat="category in categories" ng-click="searchByCategory(category.id)">
+                    <div class="category-icon" ng-style="{'background-color': category.color}">
+                        <i class="{{category.icon}}"></i>
+                    </div>
+                    <h3>{{category.name}}</h3>
+                    <p>{{category.description}}</p>
+                    <div class="category-stats">
+                        <span><i class="fas fa-store"></i> {{category.vendorCount}} vendors</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Vendors -->
+        <section class="featured-vendors" id="vendors">
+            <div class="section-header">
+                <h2>Featured Vendors</h2>
+                <p>Top-rated professionals for your event</p>
+            </div>
+            <div class="carousel-controls">
+                <button class="carousel-prev vendors-prev"><i class="fas fa-chevron-left"></i></button>
+                <button class="carousel-next vendors-next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="vendor-carousel">
+                <div class="vendor-card" ng-repeat="vendor in featuredVendors">
+                    <div class="vendor-image">
+                        <img ng-src="{{vendor.image}}" alt="{{vendor.name}}">
+                        <div class="vendor-rating">
+                            <i class="fas fa-star"></i>
+                            <span>{{vendor.rating}}</span>
+                        </div>
+                        <div class="vendor-badge" ng-if="vendor.verified">
+                            <i class="fas fa-check-circle"></i> Verified
+                        </div>
+                    </div>
+                    <div class="vendor-info">
+                        <h3>{{vendor.name}}</h3>
+                        <p class="vendor-category">{{vendor.category}}</p>
+                        <p class="vendor-location"><i class="fas fa-map-marker-alt"></i> {{vendor.location}}</p>
+                        <p class="vendor-price">{{vendor.price}}</p>
+                        <div class="vendor-tags">
+                            <span ng-repeat="tag in vendor.tags | limitTo: 3">{{tag}}</span>
+                        </div>
+                        <button class="btn view-profile-btn" ng-click="viewVendorProfile(vendor.id)">View Profile</button>
+                    </div>
+                </div>
+            </div>
+            <div class="view-all">
+                <a href="#vendors" class="btn-link">View All Vendors <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </section>
+
+        <!-- Featured Venues -->
+        <section class="featured-venues" id="venues">
+            <div class="section-header">
+                <h2>Popular Venues</h2>
+                <p>Discover perfect spaces for your events</p>
+            </div>
+            <div class="carousel-controls">
+                <button class="carousel-prev venues-prev"><i class="fas fa-chevron-left"></i></button>
+                <button class="carousel-next venues-next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="venue-carousel">
+                <div class="venue-card" ng-repeat="venue in featuredVenues">
+                    <div class="venue-image">
+                        <img ng-src="{{venue.image}}" alt="{{venue.name}}">
+                        <div class="venue-capacity">
+                            <i class="fas fa-users"></i>
+                            <span>Up to {{venue.capacity}} guests</span>
+                        </div>
+                        <div class="venue-badge" ng-if="venue.featured">
+                            <i class="fas fa-award"></i> Featured
+                        </div>
+                    </div>
+                    <div class="venue-info">
+                        <h3>{{venue.name}}</h3>
+                        <p class="venue-location"><i class="fas fa-map-marker-alt"></i> {{venue.location}}</p>
+                        <p class="venue-price">{{venue.price}}</p>
+                        <div class="venue-features">
+                            <span ng-repeat="feature in venue.features | limitTo: 3"><i class="fas fa-check"></i> {{feature}}</span>
+                        </div>
+                        <div class="venue-rating">
+                            <span class="stars">
+                                <i ng-repeat="star in getStars(venue.rating) track by $index" 
+                                   ng-class="star === 'full' ? 'fas fa-star' : (star === 'half' ? 'fas fa-star-half-alt' : 'far fa-star')"></i>
+                            </span>
+                            <span class="rating-count">({{venue.reviewCount}} reviews)</span>
+                        </div>
+                        <button class="btn view-venue-btn" ng-click="viewVenueDetails(venue.id)">View Venue</button>
+                    </div>
+                </div>
+            </div>
+            <div class="view-all">
+                <a href="#venues" class="btn-link">View All Venues <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </section>
+
+        <!-- Upcoming Events -->
+        <section class="upcoming-events" id="events">
+            <div class="section-header">
+                <h2>Upcoming Events</h2>
+                <p>Don't miss these exciting events</p>
+            </div>
+            <div class="carousel-controls">
+                <button class="carousel-prev events-prev"><i class="fas fa-chevron-left"></i></button>
+                <button class="carousel-next events-next"><i class="fas fa-chevron-right"></i></button>
+            </div>
+            <div class="event-carousel">
+                <div class="event-card" ng-repeat="event in upcomingEvents">
+                    <div class="event-image">
+                        <img ng-src="{{event.image}}" alt="{{event.name}}">
+                        <div class="event-date">
+                            <span class="day">{{event.date.day}}</span>
+                            <span class="month">{{event.date.month}}</span>
+                        </div>
+                        <div class="event-badge" ng-if="isEventSoonStarting(event)">
+                            <i class="fas fa-clock"></i> Starting Soon
+                        </div>
+                    </div>
+                    <div class="event-info">
+                        <h3>{{event.name}}</h3>
+                        <p class="event-location"><i class="fas fa-map-marker-alt"></i> {{event.location}}</p>
+                        <p class="event-time"><i class="fas fa-clock"></i> {{event.time}}</p>
+                        <p class="event-price">{{event.price}}</p>
+                        <div class="event-attendees">
+                            <div class="attendee-avatars">
+                                <img ng-repeat="attendee in event.attendees | limitTo: 3" 
+                                     ng-src="{{attendee.image}}" alt="{{attendee.name}}" 
+                                     title="{{attendee.name}}">
+                                <span class="more-attendees" ng-if="event.attendees.length > 3">+{{event.attendees.length - 3}}</span>
+                            </div>
+                            <span class="attendee-count">{{event.attendees.length}} attending</span>
+                        </div>
+                        <button class="btn book-event-btn" ng-click="bookEvent(event.id)">Book Now</button>
+                    </div>
+                </div>
+            </div>
+            <div class="view-all">
+                <a href="#events" class="btn-link">View All Events <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </section>
+
+        <!-- How It Works -->
+        <section class="how-it-works">
+            <div class="section-header">
+                <h2>How EventPro Works</h2>
+                <p>Simple steps to plan your perfect event</p>
+            </div>
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Search</h3>
+                    <p>Find vendors, venues, and events by location, price, and availability</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <h3>Book</h3>
+                    <p>Book services with real-time availability and secure payments</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-tasks"></i>
+                    </div>
+                    <h3>Manage</h3>
+                    <p>Track your bookings and communicate with vendors</p>
+                </div>
+                <div class="step">
+                    <div class="step-icon">
+                        <i class="fas fa-glass-cheers"></i>
+                    </div>
+                    <h3>Enjoy</h3>
+                    <p>Relax and enjoy your perfectly planned event</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials">
+            <div class="section-header">
+                <h2>What Our Users Say</h2>
+                <p>Hear from our satisfied customers</p>
+            </div>
+            <div class="testimonial-slider">
+                <div class="testimonial-slide" ng-repeat="testimonial in testimonials" ng-show="$index === currentTestimonial">
+                    <div class="testimonial-content">
+                        <div class="quote-icon">
+                            <i class="fas fa-quote-left"></i>
+                        </div>
+                        <p class="testimonial-text">{{testimonial.text}}</p>
+                        <div class="testimonial-author">
+                            <img ng-src="{{testimonial.image}}" alt="{{testimonial.name}}">
+                            <div class="author-info">
+                                <h4>{{testimonial.name}}</h4>
+                                <p>{{testimonial.role}}</p>
+                                <div class="author-rating">
+                                    <i class="fas fa-star" ng-repeat="star in [1,2,3,4,5] | limitTo: testimonial.rating"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-dots">
+                <span class="dot" ng-repeat="testimonial in testimonials" ng-class="{'active': $index === currentTestimonial}" ng-click="setTestimonial($index)"></span>
+            </div>
+            <div class="testimonial-arrows">
+                <button class="testimonial-arrow prev" ng-click="prevTestimonial()"><i class="fas fa-chevron-left"></i></button>
+                <button class="testimonial-arrow next" ng-click="nextTestimonial()"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <div class="cta-content">
+                <h2>Ready to Start Planning Your Event?</h2>
+                <p>Join EventPro today and connect with top vendors and venues</p>
+                <div class="cta-buttons">
+                    <button class="btn cta-client-btn" ng-click="openSignupModal('client')">Sign Up as Client</button>
+                    <button class="btn cta-vendor-btn" ng-click="openSignupModal('vendor')">Register as Vendor</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal" ng-class="{'show-modal': showLoginModal}">
+        <div class="modal-content">
+            <span class="close-modal" ng-click="closeLoginModal()">&times;</span>
+            <h2>Login to EventPro</h2>
+            <div class="account-type-selector">
+                <button class="account-type" ng-class="{'active': loginType === 'client'}" ng-click="setLoginType('client')">
+                    <i class="fas fa-user"></i>
+                    <span>Client</span>
+                </button>
+                <button class="account-type" ng-class="{'active': loginType === 'vendor'}" ng-click="setLoginType('vendor')">
+                    <i class="fas fa-store"></i>
+                    <span>Vendor</span>
+                </button>
+            </div>
+            <form class="auth-form" ng-submit="login()">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" ng-model="loginData.email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" ng-model="loginData.password" required>
+                </div>
+                <div class="form-group remember-forgot">
+                    <div class="remember-me">
+                        <input type="checkbox" id="remember" ng-model="loginData.remember">
+                        <label for="remember">Remember me</label>
+                    </div>
+                    <a href="#" class="forgot-password" ng-click="forgotPassword()">Forgot Password?</a>
+                </div>
+                <button type="submit" class="btn login-submit-btn" ng-disabled="loginInProgress">
+                    <span ng-if="!loginInProgress">Login</span>
+                    <span ng-if="loginInProgress"><i class="fas fa-spinner fa-spin"></i> Logging in...</span>
+                </button>
+            </form>
+            <div class="auth-separator">
+                <span>or</span>
+            </div>
+            <div class="social-login">
+                <button class="btn google-btn" ng-click="socialLogin('google')"><i class="fab fa-google"></i> Continue with Google</button>
+                <button class="btn facebook-btn" ng-click="socialLogin('facebook')"><i class="fab fa-facebook-f"></i> Continue with Facebook</button>
+            </div>
+            <p class="auth-switch">Don't have an account? <a href="#" ng-click="switchToSignup()">Sign Up</a></p>
         </div>
-    </nav>
+    </div>
 
-    <!-- Angular View Container -->
-    <div ng-view class="container mt-4"></div>
+    <!-- Signup Modal -->
+    <div class="modal" id="signupModal" ng-class="{'show-modal': showSignupModal}">
+        <div class="modal-content">
+            <span class="close-modal" ng-click="closeSignupModal()">&times;</span>
+            <h2>Create an EventPro Account</h2>
+            <div class="account-type-selector">
+                <button class="account-type" ng-class="{'active': signupType === 'client'}" ng-click="setSignupType('client')">
+                    <i class="fas fa-user"></i>
+                    <span>Client</span>
+                </button>
+                <button class="account-type" ng-class="{'active': signupType === 'vendor'}" ng-click="setSignupType('vendor')">
+                    <i class="fas fa-store"></i>
+                    <span>Vendor</span>
+                </button>
+            </div>
+            <form class="auth-form" ng-submit="signup()" name="signupForm" novalidate>
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" name="fullName" ng-model="signupData.fullName" required>
+                    <div class="error-message" ng-show="signupForm.fullName.$dirty && signupForm.fullName.$invalid">
+                        <span ng-show="signupForm.fullName.$error.required">Name is required</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" name="email" ng-model="signupData.email" required>
+                    <div class="error-message" ng-show="signupForm.email.$dirty && signupForm.email.$invalid">
+                        <span ng-show="signupForm.email.$error.required">Email is required</span>
+                        <span ng-show="signupForm.email.$error.email">Invalid email format</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" name="password" ng-model="signupData.password" required ng-minlength="8">
+                    <div class="error-message" ng-show="signupForm.password.$dirty && signupForm.password.$invalid">
+                        <span ng-show="signupForm.password.$error.required">Password is required</span>
+                        <span ng-show="signupForm.password.$error.minlength">Password must be at least 8 characters</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" ng-model="signupData.confirmPassword" required compare-to="signupData.password">
+                    <div class="error-message" ng-show="signupForm.confirmPassword.$dirty && signupForm.confirmPassword.$invalid">
+                        <span ng-show="signupForm.confirmPassword.$error.required">Please confirm your password</span>
+                        <span ng-show="signupForm.confirmPassword.$error.compareTo">Passwords do not match</span>
+                    </div>
+                </div>
+                <div class="form-group" ng-if="signupType === 'vendor'">
+                    <label for="businessName">Business Name</label>
+                    <input type="text" id="businessName" name="businessName" ng-model="signupData.businessName" ng-required="signupType === 'vendor'">
+                    <div class="error-message" ng-show="signupForm.businessName.$dirty && signupForm.businessName.$invalid">
+                        <span ng-show="signupForm.businessName.$error.required">Business name is required</span>
+                    </div>
+                </div>
+                <div class="form-group" ng-if="signupType === 'vendor'">
+                    <label for="businessCategory">Business Category</label>
+                    <select id="businessCategory" name="businessCategory" ng-model="signupData.businessCategory" ng-required="signupType === 'vendor'">
+                        <option value="">Select a category</option>
+                        <option value="photographer">Photographer</option>
+                        <option value="caterer">Caterer</option>
+                        <option value="venue">Venue</option>
+                        <option value="decorator">Decorator</option>
+                        <option value="musician">Musician/DJ</option>
+                        <option value="planner">Event Planner</option>
+                    </select>
+                    <div class="error-message" ng-show="signupForm.businessCategory.$dirty && signupForm.businessCategory.$invalid">
+                        <span ng-show="signupForm.businessCategory.$error.required">Please select a category</span>
+                    </div>
+                </div>
+                <div class="form-group" ng-if="signupType === 'vendor'">
+                    <label for="businessDescription">Business Description</label>
+                    <textarea id="businessDescription" name="businessDescription" ng-model="signupData.businessDescription" rows="3" ng-required="signupType === 'vendor'"></textarea>
+                    <div class="error-message" ng-show="signupForm.businessDescription.$dirty && signupForm.businessDescription.$invalid">
+                        <span ng-show="signupForm.businessDescription.$error.required">Please provide a description</span>
+                    </div>
+                </div>
+                <div class="form-group" ng-if="signupType === 'client'">
+                    <label for="phoneNumber">Phone Number</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" ng-model="signupData.phoneNumber" ng-required="signupType === 'client'">
+                    <div class="error-message" ng-show="signupForm.phoneNumber.$dirty && signupForm.phoneNumber.$invalid">
+                        <span ng-show="signupForm.phoneNumber.$error.required">Phone number is required</span>
+                    </div>
+                </div>
+                <div class="form-group terms">
+                    <input type="checkbox" id="terms" name="terms" ng-model="signupData.terms" required>
+                    <label for="terms">I agree to the <a href="#" ng-click="viewTerms($event)">Terms of Service</a> and <a href="#" ng-click="viewPrivacyPolicy($event)">Privacy Policy</a></label>
+                    <div class="error-message" ng-show="signupForm.terms.$dirty && signupForm.terms.$invalid">
+                        <span ng-show="signupForm.terms.$error.required">You must agree to the terms</span>
+                    </div>
+                </div>
+                <button type="submit" class="btn signup-submit-btn" ng-disabled="signupForm.$invalid || signupInProgress">
+                    <span ng-if="!signupInProgress">Create Account</span>
+                    <span ng-if="signupInProgress"><i class="fas fa-spinner fa-spin"></i> Creating account...</span>
+                </button>
+            </form>
+            <div class="auth-separator">
+                <span>or</span>
+            </div>
+            <div class="social-login">
+                <button class="btn google-btn" ng-click="socialSignup('google')"><i class="fab fa-google"></i> Continue with Google</button>
+                <button class="btn facebook-btn" ng-click="socialSignup('facebook')"><i class="fab fa-facebook-f"></i> Continue with Facebook</button>
+            </div>
+            <p class="auth-switch">Already have an account? <a href="#" ng-click="switchToLogin()">Login</a></p>
+        </div>
+    </div>
 
-    <!-- Footer -->
-    <footer class="bg-light py-3 mt-4">
-        <div class="container text-center">
-            <p class="mb-0">&copy; 2024 EventHub. All Rights Reserved.</p>
+    <!-- Forgot Password Modal -->
+    <div class="modal" id="forgotPasswordModal" ng-class="{'show-modal': showForgotPasswordModal}">
+        <div class="modal-content">
+            <span class="close-modal" ng-click="closeForgotPasswordModal()">&times;</span>
+            <h2>Reset Your Password</h2>
+            <p class="modal-description">Enter your email address and we'll send you a link to reset your password.</p>
+            <form class="auth-form" ng-submit="resetPassword()" name="resetForm" novalidate>
+                <div class="form-group">
+                    <label for="resetEmail">Email</label>
+                    <input type="email" id="resetEmail" name="resetEmail" ng-model="resetData.email" required>
+                    <div class="error-message" ng-show="resetForm.resetEmail.$dirty && resetForm.resetEmail.$invalid">
+                        <span ng-show="resetForm.resetEmail.$error.required">Email is required</span>
+                        <span ng-show="resetForm.resetEmail.$error.email">Invalid email format</span>
+                    </div>
+                </div>
+                <button type="submit" class="btn reset-submit-btn" ng-disabled="resetForm.$invalid || resetInProgress">
+                    <span ng-if="!resetInProgress">Send Reset Link</span>
+                    <span ng-if="resetInProgress"><i class="fas fa-spinner fa-spin"></i> Sending...</span>
+                </button>
+            </form>
+            <p class="auth-switch">Remember your password? <a href="#" ng-click="switchToLogin()">Login</a></p>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section about">
+                <h3>About EventPro</h3>
+                <p>EventPro is a comprehensive platform connecting event planners with vendors and venues to create memorable events.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-section links">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Vendors</a></li>
+                    <li><a href="#">Venues</a></li>
+                    <li><a href="#">Events</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section categories">
+                <h3>Categories</h3>
+                <ul>
+                    <li><a href="#">Photographers</a></li>
+                    <li><a href="#">Caterers</a></li>
+                    <li><a href="#">Venues</a></li>
+                    <li><a href="#">Decorators</a></li>
+                    <li><a href="#">Musicians & DJs</a></li>
+                    <li><a href="#">Event Planners</a></li>
+                </ul>
+            </div>
+            <div class="footer-section contact">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Event Street, City, Country</p>
+                <p><i class="fas fa-phone"></i> +1 234 567 8900</p>
+                <p><i class="fas fa-envelope"></i> info@eventpro.com</p>
+                <div class="newsletter">
+                    <h4>Subscribe to our newsletter</h4>
+                    <form ng-submit="subscribeNewsletter()">
+                        <input type="email" ng-model="newsletter.email" placeholder="Enter your email" required>
+                        <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2023 EventPro. All rights reserved.</p>
         </div>
     </footer>
 
-    <!-- JavaScript Libraries -->
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Application Scripts -->
-    <script src="app.js"></script>
-    
-    <!-- Controllers -->
-    <script src="controllers/landingController.js"></script>
-    <script src="controllers/homeController.js"></script>
-    <script src="controllers/searchController.js"></script>
-    <script src="controllers/vendorRegistrationController.js"></script>
-    <script src="controllers/venueBookingController.js"></script>
-
-    <!-- Services -->
-    <script src="services/vendorService.js"></script>
-    <script src="services/bookingService.js"></script>
-    <script src="services/searchService.js"></script>
+    <script src="scripts/app.js"></script>
+    <script src="scripts/controllers/mainController.js"></script>
+    <script src="scripts/directives/compareTo.js"></script>
+    <script src="scripts/index.js"></script>
 </body>
 </html>
+

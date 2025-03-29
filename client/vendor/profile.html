@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="eventProApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Profile - EventPro</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/vendor.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+</head>
+<body ng-controller="VendorProfileController">
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <h1>Event<span>Pro</span></h1>
+            </div>
+            <div class="nav-links" ng-class="{'active': isMenuOpen}">
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/vendors">Vendors</a></li>
+                    <li><a href="/venues">Venues</a></li>
+                    <li><a href="/events">Events</a></li>
+                </ul>
+            </div>
+            <div class="user-menu">
+                <div class="user-avatar" ng-click="toggleUserMenu()">
+                    <img ng-src="{{currentUser.profileImage || '/placeholder.svg?height=40&width=40'}}" alt="{{currentUser.name}}">
+                    <span>{{currentUser.name}}</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="user-dropdown" ng-class="{'show': showUserMenu}">
+                    <ul>
+                        <li><a href="/vendor/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                        <li><a href="/vendor/profile.html" class="active"><i class="fas fa-user"></i> Profile</a></li>
+                        <li><a href="/vendor/services.html"><i class="fas fa-list"></i> My Services</a></li>
+                        <li><a href="/vendor/bookings.html"><i class="fas fa-calendar-check"></i> Bookings</a></li>
+                        <li><a href="#" ng-click="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="hamburger" ng-click="toggleMenu()">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </nav>
+    </header>
+
+    <main class="profile-container">
+        <div class="profile-header">
+            <h1>Business Profile</h1>
+            <p>Manage your business information and settings</p>
+        </div>
+
+        <div class="profile-content">
+            <div class="profile-sidebar">
+                <div class="profile-avatar">
+                    <img ng-src="{{profileData.businessLogo || '/placeholder.svg?height=150&width=150'}}" alt="{{profileData.businessName}}">
+                    <button class="btn change-avatar-btn" ng-click="changeLogo()">Change Logo</button>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">{{profileData.bookingsCount || 0}}</span>
+                        <span class="stat-label">Bookings</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{profileData.reviewsCount || 0}}</span>
+                        <span class="stat-label">Reviews</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{profileData.rating || 0}}</span>
+                        <span class="stat-label">Rating</span>
+                    </div>
+                </div>
+                <div class="profile-actions">
+                    <button class="btn btn-primary" ng-click="previewProfile()">Preview Public Profile</button>
+                    <button class="btn btn-outline" ng-click="changePassword()">Change Password</button>
+                    <button class="btn btn-outline danger" ng-click="deleteAccount()">Delete Account</button>
+                </div>
+            </div>
+
+            <div class="profile-details">
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2>Business Information</h2>
+                        <button class="btn edit-btn" ng-click="editBusinessInfo()" ng-if="!editingBusinessInfo">Edit</button>
+                        <div class="edit-actions" ng-if="editingBusinessInfo">
+                            <button class="btn save-btn" ng-click="saveBusinessInfo()">Save</button>
+                            <button class="btn cancel-btn" ng-click="cancelEdit('businessInfo')">Cancel</button>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <form ng-if="editingBusinessInfo" class="edit-form">
+                            <div class="form-group">
+                                <label for="businessName">Business Name</label>
+                                <input type="text" id="businessName" ng-model="editData.businessName" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="businessCategory">Business Category</label>
+                                <select id="businessCategory" ng-model="editData.businessCategory" required>
+                                    <option value="">Select a category</option>
+                                    <option value="photographer">Photographer</option>
+                                    <option value="caterer">Caterer</option>
+                                    <option value="venue">Venue</option>
+                                    <option value="decorator">Decorator</option>
+                                    <option value="musician">Musician/DJ</option>
+                                    <option value="planner">Event Planner</option>
+                                    <option value="equipment">Equipment Rental</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="businessDescription">Business Description</label>
+                                <textarea id="businessDescription" ng-model="editData.businessDescription" rows="4" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="businessEmail">Business Email</label>
+                                <input type="email" id="businessEmail" ng-model="editData.businessEmail" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="businessPhone">Business Phone</label>
+                                <input type="tel" id="businessPhone" ng-model="editData.businessPhone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="businessWebsite">Business Website</label>
+                                <input type="url" id="businessWebsite" ng-model="editData.businessWebsite">
+                            </div>
+                        </form>
+                        <div class="info-list" ng-if="!editingBusinessInfo">
+                            <div class="info-item">
+                                <span class="info-label">Business Name</span>
+                                <span class="info-value">{{profileData.businessName}}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Category</span>
+                                <span class="info-value">{{getCategoryName(profileData.businessCategory)}}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Description</span>
+                                <span class="info-value">{{profileData.businessDescription}}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Email</span>
+                                <span class="info-value">{{profileData.businessEmail}}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Phone</span>
+                                <span class="info-value">{{profileData.businessPhone}}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Website</span>
+                                <span class="info-value">
+                                    <a href="{{profileData.businessWebsite}}" target="_blank" ng-if="profileData.businessWebsite">{{profileData.businessWebsite}}</a>
+                                    <span ng-if="!profileData.businessWebsite">Not provided</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2>Location & Service Area</h2>
+                        <button class="btn edit-btn" ng-click="editLocation()" ng-if="!editingLocation">Edit</button>
+                        <div class="edit-actions" ng-if="editingLocation">
+                            <button class="btn save-btn" ng-click="saveLocation()">Save</button>
+                            <button class="btn cancel-btn" ng-click="cancelEdit('location')">Cancel</button>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <form ng-if="editingLocation" class="edit-form">
+                            <div class="form-group">
+                                <label for="address">Address</label>
+                                <input type="text" id="address" ng-model="editData.location.address" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="city">City</label>
+                                <input type="text" id="city" ng-model="editData.location.city" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="state">State</label>
+                                <input type="text" id="state" ng-model="editData.location.state" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="zipCode">Zip Code</label>
+                                <input type="text" id="zipCode" ng-model="editData.location.zipCode" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Service Areas</label>
+                                <div class="service-areas-input">
+                                    <div class="service-area-item" ng-repeat="area in editData.serviceAreas track by $index">
+                                        <input type="text" ng-model="editData.serviceAreas[$index]">
+                                        <button type="button" class="btn remove-btn" ng-click="removeServiceArea($index)">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <button type="button" class="btn add-btn" ng-click="addServiceArea()">
+                                        <i class="fas fa-plus"></i> Add Service Area
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Travel Distance</label>
+                                <div class="travel-distance">
+                                    <input type="number" id="travelDistance" ng-model="editData.travelDistance" min="0">
+                                    <select id="travelUnit" ng-model="editData.travelUnit">
+                                        <option value="miles">Miles</option>
+                                        <option value="kilometers">Kilometers</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="info-list" ng-if="!editingLocation">
+                            <div class="info-item">
+                                <span class="info-label">Address</span>
+                                <span class="info-value">{{profileData.location.address}}, {{profileData.location.city}}, {{profileData.location.state}} {{profileData.location.zipCode}}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Service Areas</span>
+                                <span class="info-value">
+                                    <span class="tag" ng-repeat="area in profileData.serviceAreas">{{area}}</span>
+                                    <span ng-if="profileData.serviceAreas.length === 0">No service areas specified</span>
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Travel Distance</span>
+                                <span class="info-value">{{profileData.travelDistance}} {{profileData.travelUnit}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2>Services & Pricing</h2>
+                        <button class="btn edit-btn" ng-click="editServices()" ng-if="!editingServices">Edit</button>
+                        <div class="edit-actions" ng-if="editingServices">
+                            <button class="btn save-btn" ng-click="saveServices()">Save</button>
+                            <button class="btn cancel-btn" ng-click="cancelEdit('services')">Cancel</button>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <form ng-if="editingServices" class="edit-form">
+                            <div class="form-group">
+                                <label>Services Offered</label>
+                                <div class="services-input">
+                                    <div class="service-item" ng-repeat="service in editData.services track by $index">
+                                        <div class="service-details">
+                                            <input type="text" ng-model="service.name" placeholder="Service Name" required>
+                                            <input type="text" ng-model="service.price" placeholder="Price" required>
+                                            <textarea ng-model="service.description" placeholder="Description" rows="2"></textarea>
+                                        </div>
+                                        <button type="button" class="btn remove-btn" ng-click="removeService($index)">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <button type="button" class="btn add-btn" ng-click="addService()">
+                                        <i class="fas fa-plus"></i> Add Service
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Payment Methods</label>
+                                <div class="checkbox-group">
+                                    <div class="checkbox-item" ng-repeat="method in paymentMethods">
+                                        <input type="checkbox" id="payment-{{method.id}}" ng-model="editData.paymentMethods[method.id]">
+                                        <label for="payment-{{method.id}}">{{method.name}}</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="depositRequired">Deposit Required</label>
+                                <select id="depositRequired" ng-model="editData.depositRequired">
+                                    <option value="no">No</option>
+                                    <option value="percentage">Yes, percentage of total</option>
+                                    <option value="fixed">Yes, fixed amount</option>
+                                </select>
+                            </div>
+                            <div class="form-group" ng-if="editData.depositRequired !== 'no'">
+                                <label for="depositAmount">Deposit Amount</label>
+                                <div class="deposit-amount">
+                                    <input type="number" id="depositAmount" ng-model="editData.depositAmount" min="0">
+                                    <span ng-if="editData.depositRequired === 'percentage'">%</span>
+                                    <span ng-if="editData.depositRequired === 'fixed'">$</span>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="info-list" ng-if="!editingServices">
+                            <div class="info-item">
+                                <span class="info-label">Services Offered</span>
+                                <div class="services-list">
+                                    <div class="service-card" ng-repeat="service in profileData.services">
+                                        <h3>{{service.name}}</h3>
+                                        <p class="service-price">{{service.price}}</p>
+                                        <p class="service-description">{{service.description}}</p>
+                                    </div>
+                                    <div class="empty-state" ng-if="profileData.services.length === 0">
+                                        <i class="fas fa-list"></i>
+                                        <p>No services added yet</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Payment Methods</span>
+                                <span class="info-value">
+                                    <span class="tag" ng-repeat="(id, selected) in profileData.paymentMethods" ng-if="selected">
+                                        {{getPaymentMethodName(id)}}
+                                    </span>
+                                    <span ng-if="!hasSelectedPaymentMethods()">No payment methods specified</span>
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Deposit</span>
+                                <span class="info-value">
+                                    <span ng-if="profileData.depositRequired === 'no'">No deposit required</span>
+                                    <span ng-if="profileData.depositRequired === 'percentage'">{{profileData.depositAmount}}% deposit required</span>
+                                    <span ng-if="profileData.depositRequired === 'fixed'">${{profileData.depositAmount}} deposit required</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <div class="section-header">
+                        <h2>Portfolio & Gallery</h2>
+                        <button class="btn edit-btn" ng-click="editPortfolio()" ng-if="!editingPortfolio">Edit</button>
+                        <div class="edit-actions" ng-if="editingPortfolio">
+                            <button class="btn save-btn" ng-click="savePortfolio()">Save</button>
+                            <button class="btn cancel-btn" ng-click="cancelEdit('portfolio')">Cancel</button>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="portfolio-editor" ng-if="editingPortfolio">
+                            <div class="upload-area">
+                                <label for="portfolioUpload" class="upload-label">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span>Upload Images</span>
+                                </label>
+                                <input type="file" id="portfolioUpload" multiple accept="image/*" onchange="angular.element(this).scope().handleFileUpload(this.files)">
+                            </div>
+                            <div class="portfolio-grid">
+                                <div class="portfolio-item" ng-repeat="item in editData.portfolio">
+                                    <div class="portfolio-image">
+                                        <img ng-src="{{item.image}}" alt="Portfolio item">
+                                        <div class="portfolio-actions">
+                                            <button class="btn edit-caption-btn" ng-click="editCaption($index)">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn remove-image-btn" ng-click="removePortfolioItem($index)">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="portfolio-caption">
+                                        <p>{{item.caption || 'No caption'}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="portfolio-gallery" ng-if="!editingPortfolio">
+                            <div class="portfolio-grid">
+                                <div class="portfolio-item" ng-repeat="item in profileData.portfolio">
+                                    <div class="portfolio-image">
+                                        <img ng-src="{{item.image}}" alt="{{item.caption || 'Portfolio image'}}" ng-click="viewImage(item)">
+                                    </div>
+                                    <div class="portfolio-caption" ng-if="item.caption">
+                                        <p>{{item.caption}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="empty-state" ng-if="profileData.portfolio.length === 0">
+                                <i class="fas fa-images"></i>
+                                <p>No portfolio images added yet</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Change Password Modal -->
+    <div class="modal" id="changePasswordModal" ng-class="{'show-modal': showChangePasswordModal}">
+        <div class="modal-content">
+            <span class="close-modal" ng-click="closeChangePasswordModal()">&times;</span>
+            <h2>Change Password</h2>
+            <form class="auth-form" ng-submit="updatePassword()" name="passwordForm" novalidate>
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" name="currentPassword" ng-model="passwordData.currentPassword" required>
+                    <div class="error-message" ng-show="passwordForm.currentPassword.$dirty && passwordForm.currentPassword.$invalid">
+                        <span ng-show="passwordForm.currentPassword.$error.required">Current password is required</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" name="newPassword" ng-model="passwordData.newPassword" required ng-minlength="8">
+                    <div class="error-message" ng-show="passwordForm.newPassword.$dirty && passwordForm.newPassword.$invalid">
+                        <span ng-show="passwordForm.newPassword.$error.required">New password is required</span>
+                        <span ng-show="passwordForm.newPassword.$error.minlength">Password must be at least 8 characters</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmNewPassword">Confirm New Password</label>
+                    <input type="password" id="confirmNewPassword" name="confirmNewPassword" ng-model="passwordData.confirmNewPassword" required compare-to="passwordData.newPassword">
+                    <div class="error-message" ng-show="passwordForm.confirmNewPassword.$dirty && passwordForm.confirmNewPassword.$invalid">
+                        <span ng-show="passwordForm.confirmNewPassword.$error.required">Please confirm your new password</span>
+                        <span ng-show="passwordForm.confirmNewPassword.$error.compareTo">Passwords do not match</span>
+                    </div>
+                </div>
+                <button type="submit" class="btn update-password-btn" ng-disabled="passwordForm.$invalid || passwordUpdateInProgress">
+                    <span ng-if="!passwordUpdateInProgress">Update Password</span>
+                    <span ng-if="passwordUpdateInProgress"><i class="fas fa-spinner fa-spin"></i> Updating...</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Account Modal -->
+    <div class="modal" id="deleteAccountModal" ng-class="{'show-modal': showDeleteAccountModal}">
+        <div class="modal-content">
+            <span class="close-modal" ng-click="closeDeleteAccountModal()">&times;</span>
+            <h2>Delete Account</h2>
+            <p class="modal-description">Are you sure you want to delete your account? This action cannot be undone.</p>
+            <form class="auth-form" ng-submit="confirmDeleteAccount()" name="deleteForm" novalidate>
+                <div class="form-group">
+                    <label for="deletePassword">Enter your password to confirm</label>
+                    <input type="password" id="deletePassword" name="deletePassword" ng-model="deleteData.password" required>
+                    <div class="error-message" ng-show="deleteForm.deletePassword.$dirty && deleteForm.deletePassword.$invalid">
+                        <span ng-show="deleteForm.deletePassword.$error.required">Password is required</span>
+                    </div>
+                </div>
+                <div class="form-group terms">
+                    <input type="checkbox" id="deleteConfirm" name="deleteConfirm" ng-model="deleteData.confirm" required>
+                    <label for="deleteConfirm">I understand that this action is permanent and cannot be undone</label>
+                    <div class="error-message" ng-show="deleteForm.deleteConfirm.$dirty && deleteForm.deleteConfirm.$invalid">
+                        <span ng-show="deleteForm.deleteConfirm.$error.required">You must confirm this action</span>
+                    </div>
+                </div>
+                <div class="delete-account-buttons">
+                    <button type="button" class="btn cancel-btn" ng-click="closeDeleteAccountModal()">Cancel</button>
+                    <button type="submit" class="btn delete-btn" ng-disabled="deleteForm.$invalid || deleteInProgress">
+                        <span ng-if="!deleteInProgress">Delete Account</span>
+                        <span ng-if="deleteInProgress"><i class="fas fa-spinner fa-spin"></i> Deleting...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Caption Edit Modal -->
+    <div class="modal" id="captionModal" ng-class="{'show-modal': showCaptionModal}">
+        <div class="modal-content">
+            <span class="close-modal" ng-click="closeCaptionModal()">&times;</span>
+            <h2>Edit Caption</h2>
+            <form class="auth-form" ng-submit="saveCaption()">
+                <div class="form-group">
+                    <label for="imageCaption">Caption</label>
+                    <textarea id="imageCaption" ng-model="captionData.text" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn save-btn">Save Caption</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div class="modal image-viewer-modal" id="imageViewerModal" ng-class="{'show-modal': showImageViewerModal}">
+        <div class="modal-content">
+            <span class="close-modal" ng-click="closeImageViewer()">&times;</span>
+            <div class="image-viewer">
+                <img ng-src="{{viewerImage.image}}" alt="{{viewerImage.caption || 'Portfolio image'}}">
+                <p class="image-caption" ng-if="viewerImage.caption">{{viewerImage.caption}}</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section about">
+                <h3>About EventPro</h3>
+                <p>EventPro is a comprehensive platform connecting event planners with vendors and venues to create memorable events.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-section links">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/vendors">Vendors</a></li>
+                    <li><a href="/venues">Venues</a></li>
+                    <li><a href="/events">Events</a></li>
+                    <li><a href="/about">About Us</a></li>
+                    <li><a href="/contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section categories">
+                <h3>Categories</h3>
+                <ul>
+                    <li><a href="/vendors?category=photographer">Photographers</a></li>
+                    <li><a href="/vendors?category=caterer">Caterers</a></li>
+                    <li><a href="/venues">Venues</a></li>
+                    <li><a href="/vendors?category=decorator">Decorators</a></li>
+                    <li><a href="/vendors?category=musician">Musicians & DJs</a></li>
+                    <li><a href="/vendors?category=planner">Event Planners</a></li>
+                </ul>
+            </div>
+            <div class="footer-section contact">
+                <h3>Contact Us</h3>
+                <p><i class="fas fa-map-marker-alt"></i> 123 Event Street, City, Country</p>
+                <p><i class="fas fa-phone"></i> +1 234 567 8900</p>
+                <p><i class="fas fa-envelope"></i> info@eventpro.com</p>
+                <div class="newsletter">
+                    <h4>Subscribe to our newsletter</h4>
+                    <form ng-submit="subscribeNewsletter()">
+                        <input type="email" ng-model="newsletter.email" placeholder="Enter your email" required>
+                        <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2023 EventPro. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../scripts/app.js"></script>
+    <script src="../scripts/controllers/vendorProfileController.js"></script>
+    <script src="../scripts/directives/compareTo.js"></script>
+</body>
+</html>
+

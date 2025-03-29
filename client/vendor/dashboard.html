@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="eventProApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Dashboard - EventPro</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/vendor.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+</head>
+<body ng-controller="VendorDashboardController">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="logo">Event<span>Pro</span></h1>
+                <button class="close-sidebar" ng-click="toggleSidebar()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">
+                    <img ng-src="{{vendor.avatar || '/placeholder.svg?height=50&width=50'}}" alt="{{vendor.name}}">
+                </div>
+                <div class="user-details">
+                    <h3>{{vendor.name}}</h3>
+                    <p>{{vendor.category}}</p>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li ng-class="{'active': activeTab === 'dashboard'}">
+                        <a href="#" ng-click="setActiveTab('dashboard')">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'bookings'}">
+                        <a href="#" ng-click="setActiveTab('bookings')">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Bookings</span>
+                            <span class="badge" ng-if="stats.pendingBookings > 0">{{stats.pendingBookings}}</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'services'}">
+                        <a href="#" ng-click="setActiveTab('services')">
+                            <i class="fas fa-concierge-bell"></i>
+                            <span>Services</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'portfolio'}">
+                        <a href="#" ng-click="setActiveTab('portfolio')">
+                            <i class="fas fa-images"></i>
+                            <span>Portfolio</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'calendar'}">
+                        <a href="#" ng-click="setActiveTab('calendar')">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Calendar</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'messages'}">
+                        <a href="#" ng-click="setActiveTab('messages')">
+                            <i class="fas fa-envelope"></i>
+                            <span>Messages</span>
+                            <span class="badge" ng-if="stats.unreadMessages > 0">{{stats.unreadMessages}}</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'reviews'}">
+                        <a href="#" ng-click="setActiveTab('reviews')">
+                            <i class="fas fa-star"></i>
+                            <span>Reviews</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'analytics'}">
+                        <a href="#" ng-click="setActiveTab('analytics')">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'profile'}">
+                        <a href="#" ng-click="setActiveTab('profile')">
+                            <i class="fas fa-user"></i>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'settings'}">
+                        <a href="#" ng-click="setActiveTab('settings')">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" ng-click="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="dashboard-header">
+                <button class="toggle-sidebar" ng-click="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search bookings, clients...">
+                </div>
+                <div class="header-actions">
+                    <div class="notification-bell">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge" ng-if="stats.notifications > 0">{{stats.notifications}}</span>
+                    </div>
+                    <div class="user-dropdown">
+                        <img ng-src="{{vendor.avatar || '/placeholder.svg?height=40&width=40'}}" alt="{{vendor.name}}">
+                        <span>{{vendor.name}}</span>
+                        <i class="fas fa-chevron-down"></i>
+                        <div class="dropdown-menu">
+                            <a href="#" ng-click="setActiveTab('profile')">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="#" ng-click="setActiveTab('settings')">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                            <a href="#" ng-click="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content" ng-show="activeTab === 'dashboard'">
+                <div class="welcome-banner">
+                    <div class="welcome-text">
+                        <h2>Welcome back, {{vendor.name}}!</h2>
+                        <p>Here's an overview of your business.</p>
+                    </div>
+                    <div class="welcome-actions">
+                        <button class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add New Service
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{stats.totalBookings}}</h3>
+                            <p>Total Bookings</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{stats.pendingBookings}}</h3>
+                            <p>Pending Bookings</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>${{stats.revenue}}</h3>
+                            <p>Monthly Revenue</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{stats.rating}}</h3>
+                            <p>Average Rating</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-sections">
+                    <div class="dashboard-section">
+                        <div class="section-header">
+                            <h3>Recent Bookings</h3>
+                            <a href="#" class="view-all" ng-click="setActiveTab('bookings')">View All</a>
+                        </div>
+                        <div class="recent-bookings-list">
+                            <div class="booking-item" ng-repeat="booking in recentBookings">
+                                <div class="booking-client">
+                                    <img ng-src="{{booking.clientImage || '/placeholder.svg?height=50&width=50'}}" alt="{{booking.clientName}}">
+                                    <div class="client-info">
+                                        <h4>{{booking.clientName}}</h4>
+                                        <p>{{booking.service}}</p>
+                                    </div>
+                                </div>
+                                <div class="booking-details">
+                                    <p><i class="fas fa-calendar"></i> {{booking.date}}</p>
+                                    <p><i class="fas fa-map-marker-alt"></i> {{booking.location}}</p>
+                                </div>
+                                <div class="booking-price">
+                                    {{booking.price}}
+                                </div>
+                                <div class="booking-status" ng-class="booking.status">
+                                    {{booking.status}}
+                                </div>
+                                <div class="booking-actions">
+                                    <button class="btn btn-outline">View</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="section-header">
+                            <h3>Recent Reviews</h3>
+                            <a href="#" class="view-all" ng-click="setActiveTab('reviews')">View All</a>
+                        </div>
+                        <div class="recent-reviews-list">
+                            <div class="review-item" ng-repeat="review in recentReviews">
+                                <div class="review-header">
+                                    <div class="review-client">
+                                        <img ng-src="{{review.clientImage || '/placeholder.svg?height=40&width=40'}}" alt="{{review.clientName}}">
+                                        <div class="client-info">
+                                            <h4>{{review.clientName}}</h4>
+                                            <p>{{review.date}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="review-rating">
+                                        <span class="star" ng-repeat="star in [1, 2, 3, 4, 5]">
+                                            <i class="fas fa-star" ng-if="star <= review.rating"></i>
+                                            <i class="far fa-star" ng-if="star > review.rating"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="review-content">
+                                    <p>{{review.text}}</p>
+                                </div>
+                                <div class="review-actions" ng-if="!review.replied">
+                                    <button class="btn btn-outline">Reply</button>
+                                </div>
+                                <div class="review-reply" ng-if="review.replied">
+                                    <div class="reply-header">
+                                        <div class="reply-vendor">
+                                            <img ng-src="{{vendor.avatar || '/placeholder.svg?height=30&width=30'}}" alt="{{vendor.name}}">
+                                            <div class="vendor-info">
+                                                <h5>{{vendor.name}}</h5>
+                                                <p>{{review.replyDate}}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="reply-content">
+                                        <p>{{review.replyText}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-sections">
+                    <div class="dashboard-section">
+                        <div class="section-header">
+                            <h3>Upcoming Calendar</h3>
+                            <a href="#" class="view-all" ng-click="setActiveTab('calendar')">View Full Calendar</a>
+                        </div>
+                        <div class="calendar-preview">
+                            <div class="calendar-header">
+                                <button class="btn btn-icon"><i class="fas fa-chevron-left"></i></button>
+                                <h4>July 2023</h4>
+                                <button class="btn btn-icon"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                            <div class="calendar-days">
+                                <div class="day-header">Sun</div>
+                                <div class="day-header">Mon</div>
+                                <div class="day-header">Tue</div>
+                                <div class="day-header">Wed</div>
+                                <div class="day-header">Thu</div>
+                                <div class="day-header">Fri</div>
+                                <div class="day-header">Sat</div>
+                                
+                                <!-- Calendar days -->
+                                <div class="day prev-month">25</div>
+                                <div class="day prev-month">26</div>
+                                <div class="day prev-month">27</div>
+                                <div class="day prev-month">28</div>
+                                <div class="day prev-month">29</div>
+                                <div class="day prev-month">30</div>
+                                <div class="day">1</div>
+                                <div class="day">2</div>
+                                <div class="day">3</div>
+                                <div class="day">4</div>
+                                <div class="day">5</div>
+                                <div class="day">6</div>
+                                <div class="day">7</div>
+                                <div class="day">8</div>
+                                <div class="day">9</div>
+                                <div class="day">10</div>
+                                <div class="day">11</div>
+                                <div class="day">12</div>
+                                <div class="day">13</div>
+                                <div class="day">14</div>
+                                <div class="day has-event">15</div>
+                                <div class="day">16</div>
+                                <div class="day">17</div>
+                                <div class="day">18</div>
+                                <div class="day">19</div>
+                                <div class="day">20</div>
+                                <div class="day">21</div>
+                                <div class="day">22</div>
+                                <div class="day has-event">23</div>
+                                <div class="day">24</div>
+                                <div class="day">25</div>
+                                <div class="day">26</div>
+                                <div class="day">27</div>
+                                <div class="day">28</div>
+                                <div class="day">29</div>
+                                <div class="day has-event">30</div>
+                                <div class="day">31</div>
+                                <div class="day next-month">1</div>
+                                <div class="day next-month">2</div>
+                                <div class="day next-month">3</div>
+                                <div class="day next-month">4</div>
+                                <div class="day next-month">5</div>
+                            </div>
+                            <div class="calendar-events">
+                                <h5>Upcoming Events</h5>
+                                <div class="calendar-event-item">
+                                    <div class="event-date">
+                                        <span class="day">15</span>
+                                        <span class="month">Jul</span>
+                                    </div>
+                                    <div class="event-details">
+                                        <h4>Company Anniversary</h4>
+                                        <p><i class="fas fa-clock"></i> 6:00 PM - 11:00 PM</p>
+                                        <p><i class="fas fa-map-marker-alt"></i> Grand Ballroom, New York</p>
+                                    </div>
+                                </div>
+                                <div class="calendar-event-item">
+                                    <div class="event-date">
+                                        <span class="day">23</span>
+                                        <span class="month">Jul</span>
+                                    </div>
+                                    <div class="event-details">
+                                        <h4>Wedding Ceremony</h4>
+                                        <p><i class="fas fa-clock"></i> 2:00 PM - 10:00 PM</p>
+                                        <p><i class="fas fa-map-marker-alt"></i> Seaside Resort, Miami</p>
+                                    </div>
+                                </div>
+                                <div class="calendar-event-item">
+                                    <div class="event-date">
+                                        <span class="day">30</span>
+                                        <span class="month">Jul</span>
+                                    </div>
+                                    <div class="event-details">
+                                        <h4>Corporate Event</h4>
+                                        <p><i class="fas fa-clock"></i> 9:00 AM - 5:00 PM</p>
+                                        <p><i class="fas fa-map-marker-alt"></i> Urban Loft, Chicago</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="section-header">
+                            <h3>Performance Analytics</h3>
+                            <a href="#" class="view-all" ng-click="setActiveTab('analytics')">View Detailed Analytics</a>
+                        </div>
+                        <div class="analytics-preview">
+                            <div class="chart-container">
+                                <h4>Bookings Overview</h4>
+                                <div class="chart-placeholder">
+                                    <img src="/placeholder.svg?height=200&width=400" alt="Bookings Chart">
+                                </div>
+                            </div>
+                            <div class="analytics-metrics">
+                                <div class="metric-item">
+                                    <h5>Booking Conversion Rate</h5>
+                                    <div class="metric-value">
+                                        <span>68%</span>
+                                        <span class="metric-change positive">+5%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress" style="width: 68%"></div>
+                                    </div>
+                                </div>
+                                <div class="metric-item">
+                                    <h5>Profile Views</h5>
+                                    <div class="metric-value">
+                                        <span>1,245</span>
+                                        <span class="metric-change positive">+12%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress" style="width: 75%"></div>
+                                    </div>
+                                </div>
+                                <div class="metric-item">
+                                    <h5>Response Rate</h5>
+                                    <div class="metric-value">
+                                        <span>92%</span>
+                                        <span class="metric-change negative">-2%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress" style="width: 92%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other tabs content would go here -->
+            <div class="dashboard-content" ng-show="activeTab !== 'dashboard'">
+                <div class="content-placeholder">
+                    <i class="fas fa-tools"></i>
+                    <h2>{{activeTab | capitalize}} Section</h2>
+                    <p>This section is under development. Please check back later.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../scripts/app.js"></script>
+    <script src="../scripts/controllers/vendorController.js"></script>
+</body>
+</html>
+

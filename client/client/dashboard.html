@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="eventProApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Dashboard - EventPro</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/client.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular-route.min.js"></script>
+</head>
+<body ng-controller="ClientDashboardController">
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="logo">Event<span>Pro</span></h1>
+                <button class="close-sidebar" ng-click="toggleSidebar()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">
+                    <img ng-src="{{user.avatar || '/placeholder.svg?height=50&width=50'}}" alt="{{user.name}}">
+                </div>
+                <div class="user-details">
+                    <h3>{{user.name}}</h3>
+                    <p>Client</p>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li ng-class="{'active': activeTab === 'dashboard'}">
+                        <a href="#" ng-click="setActiveTab('dashboard')">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'bookings'}">
+                        <a href="#" ng-click="setActiveTab('bookings')">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>My Bookings</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'favorites'}">
+                        <a href="#" ng-click="setActiveTab('favorites')">
+                            <i class="fas fa-heart"></i>
+                            <span>Favorites</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'messages'}">
+                        <a href="#" ng-click="setActiveTab('messages')">
+                            <i class="fas fa-envelope"></i>
+                            <span>Messages</span>
+                            <span class="badge">3</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'profile'}">
+                        <a href="#" ng-click="setActiveTab('profile')">
+                            <i class="fas fa-user"></i>
+                            <span>Profile</span>
+                        </a>
+                    </li>
+                    <li ng-class="{'active': activeTab === 'settings'}">
+                        <a href="#" ng-click="setActiveTab('settings')">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="#" ng-click="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="dashboard-header">
+                <button class="toggle-sidebar" ng-click="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search vendors, venues, events...">
+                </div>
+                <div class="header-actions">
+                    <div class="notification-bell">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">2</span>
+                    </div>
+                    <div class="user-dropdown">
+                        <img ng-src="{{user.avatar || '/placeholder.svg?height=40&width=40'}}" alt="{{user.name}}">
+                        <span>{{user.name}}</span>
+                        <i class="fas fa-chevron-down"></i>
+                        <div class="dropdown-menu">
+                            <a href="#" ng-click="setActiveTab('profile')">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                            <a href="#" ng-click="setActiveTab('settings')">
+                                <i class="fas fa-cog"></i> Settings
+                            </a>
+                            <a href="#" ng-click="logout()">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content" ng-show="activeTab === 'dashboard'">
+                <div class="welcome-banner">
+                    <div class="welcome-text">
+                        <h2>Welcome back, {{user.name}}!</h2>
+                        <p>Here's what's happening with your events.</p>
+                    </div>
+                    <div class="welcome-actions">
+                        <button class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Plan New Event
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{stats.upcomingEvents}}</h3>
+                            <p>Upcoming Events</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{stats.activeBookings}}</h3>
+                            <p>Active Bookings</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{stats.savedVendors}}</h3>
+                            <p>Saved Vendors</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>{{stats.unreadMessages}}</h3>
+                            <p>Unread Messages</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-sections">
+                    <div class="dashboard-section">
+                        <div class="section-header">
+                            <h3>Upcoming Events</h3>
+                            <a href="#" class="view-all">View All</a>
+                        </div>
+                        <div class="upcoming-events-list">
+                            <div class="event-item" ng-repeat="event in upcomingEvents">
+                                <div class="event-date">
+                                    <span class="day">{{event.date.day}}</span>
+                                    <span class="month">{{event.date.month}}</span>
+                                </div>
+                                <div class="event-details">
+                                    <h4>{{event.name}}</h4>
+                                    <p><i class="fas fa-map-marker-alt"></i> {{event.location}}</p>
+                                    <p><i class="fas fa-clock"></i> {{event.time}}</p>
+                                </div>
+                                <div class="event-actions">
+                                    <button class="btn btn-outline">Details</button>
+                                </div>
+                            </div>
+                            <div class="empty-state" ng-if="upcomingEvents.length === 0">
+                                <i class="fas fa-calendar-alt"></i>
+                                <p>No upcoming events</p>
+                                <button class="btn btn-primary">Plan an Event</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-section">
+                        <div class="section-header">
+                            <h3>Recent Bookings</h3>
+                            <a href="#" class="view-all" ng-click="setActiveTab('bookings')">View All</a>
+                        </div>
+                        <div class="recent-bookings-list">
+                            <div class="booking-item" ng-repeat="booking in recentBookings">
+                                <div class="booking-vendor">
+                                    <img ng-src="{{booking.vendorImage || '/placeholder.svg?height=50&width=50'}}" alt="{{booking.vendorName}}">
+                                    <div class="vendor-info">
+                                        <h4>{{booking.vendorName}}</h4>
+                                        <p>{{booking.service}}</p>
+                                    </div>
+                                </div>
+                                <div class="booking-details">
+                                    <p><i class="fas fa-calendar"></i> {{booking.date}}</p>
+                                    <p><i class="fas fa-dollar-sign"></i> {{booking.price}}</p>
+                                </div>
+                                <div class="booking-status" ng-class="booking.status">
+                                    {{booking.status}}
+                                </div>
+                                <div class="booking-actions">
+                                    <button class="btn btn-outline">Details</button>
+                                </div>
+                            </div>
+                            <div class="empty-state" ng-if="recentBookings.length === 0">
+                                <i class="fas fa-calendar-check"></i>
+                                <p>No recent bookings</p>
+                                <button class="btn btn-primary">Find Vendors</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-sections">
+                    <div class="dashboard-section">
+                        <div class="section-header">
+                            <h3>Recommended Vendors</h3>
+                            <a href="#" class="view-all">View All</a>
+                        </div>
+                        <div class="recommended-vendors">
+                            <div class="vendor-card" ng-repeat="vendor in recommendedVendors">
+                                <div class="vendor-image">
+                                    <img ng-src="{{vendor.image}}" alt="{{vendor.name}}">
+                                    <div class="vendor-rating">
+                                        <i class="fas fa-star"></i>
+                                        <span>{{vendor.rating}}</span>
+                                    </div>
+                                </div>
+                                <div class="vendor-info">
+                                    <h4>{{vendor.name}}</h4>
+                                    <p class="vendor-category">{{vendor.category}}</p>
+                                    <p class="vendor-location"><i class="fas fa-map-marker-alt"></i> {{vendor.location}}</p>
+                                    <p class="vendor-price">{{vendor.price}}</p>
+                                    <div class="vendor-actions">
+                                        <button class="btn btn-primary">View Profile</button>
+                                        <button class="btn btn-outline" ng-click="toggleFavorite(vendor)">
+                                            <i class="fas" ng-class="{'fa-heart': vendor.isFavorite, 'fa-heart-o': !vendor.isFavorite}"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bookings Content -->
+            <div class="dashboard-content" ng-show="activeTab === 'bookings'">
+                <div class="content-header">
+                    <h2>My Bookings</h2>
+                    <div class="content-actions">
+                        <div class="filter-dropdown">
+                            <button class="btn btn-outline">
+                                <i class="fas fa-filter"></i> Filter
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div class="sort-dropdown">
+                            <button class="btn btn-outline">
+                                <i class="fas fa-sort"></i> Sort
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="booking-tabs">
+                    <button class="tab-btn" ng-class="{'active': bookingTab === 'all'}" ng-click="setBookingTab('all')">All</button>
+                    <button class="tab-btn" ng-class="{'active': bookingTab === 'upcoming'}" ng-click="setBookingTab('upcoming')">Upcoming</button>
+                    <button class="tab-btn" ng-class="{'active': bookingTab === 'pending'}" ng-click="setBookingTab('pending')">Pending</button>
+                    <button class="tab-btn" ng-class="{'active': bookingTab === 'completed'}" ng-click="setBookingTab('completed')">Completed</button>
+                    <button class="tab-btn" ng-class="{'active': bookingTab === 'cancelled'}" ng-click="setBookingTab('cancelled')">Cancelled</button>
+                </div>
+
+                <div class="bookings-list">
+                    <div class="booking-card" ng-repeat="booking in filteredBookings">
+                        <div class="booking-header">
+                            <div class="booking-vendor">
+                                <img ng-src="{{booking.vendorImage || '/placeholder.svg?height=60&width=60'}}" alt="{{booking.vendorName}}">
+                                <div class="vendor-info">
+                                    <h3>{{booking.vendorName}}</h3>
+                                    <p>{{booking.service}}</p>
+                                </div>
+                            </div>
+                            <div class="booking-status" ng-class="booking.status">
+                                {{booking.status}}
+                            </div>
+                        </div>
+                        <div class="booking-body">
+                            <div class="booking-details">
+                                <div class="detail-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <div>
+                                        <h4>Date & Time</h4>
+                                        <p>{{booking.date}} at {{booking.time}}</p>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <div>
+                                        <h4>Location</h4>
+                                        <p>{{booking.location}}</p>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    <div>
+                                        <h4>Price</h4>
+                                        <p>{{booking.price}}</p>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-info-circle"></i>
+                                    <div>
+                                        <h4>Booking ID</h4>
+                                        <p>{{booking.id}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="booking-footer">
+                            <button class="btn btn-outline">Message Vendor</button>
+                            <button class="btn btn-primary">View Details</button>
+                            <button class="btn btn-danger" ng-if="booking.status === 'pending' || booking.status === 'confirmed'">Cancel Booking</button>
+                        </div>
+                    </div>
+                    <div class="empty-state" ng-if="filteredBookings.length === 0">
+                        <i class="fas fa-calendar-check"></i>
+                        <p>No bookings found</p>
+                        <button class="btn btn-primary">Find Vendors</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Favorites Content -->
+            <div class="dashboard-content" ng-show="activeTab === 'favorites'">
+                <div class="content-header">
+                    <h2>My Favorites</h2>
+                    <div class="content-actions">
+                        <div class="filter-dropdown">
+                            <button class="btn btn-outline">
+                                <i class="fas fa-filter"></i> Filter
+                                <i class="fas fa-chevron-down"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="favorite-tabs">
+                    <button class="tab-btn" ng-class="{'active': favoriteTab === 'vendors'}" ng-click="setFavoriteTab('vendors')">Vendors</button>
+                    <button class="tab-btn" ng-class="{'active': favoriteTab === 'venues'}" ng-click="setFavoriteTab('venues')">Venues</button>
+                    <button class="tab-btn" ng-class="{'active': favoriteTab === 'events'}" ng-click="setFavoriteTab('events')">Events</button>
+                </div>
+
+                <div class="favorites-grid" ng-show="favoriteTab === 'vendors'">
+                    <div class="vendor-card" ng-repeat="vendor in favoriteVendors">
+                        <div class="vendor-image">
+                            <img ng-src="{{vendor.image}}" alt="{{vendor.name}}">
+                            <div class="vendor-rating">
+                                <i class="fas fa-star"></i>
+                                <span>{{vendor.rating}}</span>
+                            </div>
+                            <button class="remove-favorite" ng-click="toggleFavorite(vendor)">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="vendor-info">
+                            <h3>{{vendor.name}}</h3>
+                            <p class="vendor-category">{{vendor.category}}</p>
+                            <p class="vendor-location"><i class="fas fa-map-marker-alt"></i> {{vendor.location}}</p>
+                            <p class="vendor-price">{{vendor.price}}</p>
+                            <div class="vendor-actions">
+                                <button class="btn btn-primary">View Profile</button>
+                                <button class="btn btn-outline">Book Now</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="empty-state" ng-if="favoriteVendors.length === 0">
+                        <i class="fas fa-heart"></i>
+                        <p>No favorite vendors yet</p>
+                        <button class="btn btn-primary">Explore Vendors</button>
+                    </div>
+                </div>
+
+                <div class="favorites-grid" ng-show="favoriteTab === 'venues'">
+                    <div class="venue-card" ng-repeat="venue in favoriteVenues">
+                        <div class="venue-image">
+                            <img ng-src="{{venue.image}}" alt="{{venue.name}}">
+                            <div class="venue-capacity">
+                                <i class="fas fa-users"></i>
+                                <span>Up to {{venue.capacity}} guests</span>
+                            </div>
+                            <button class="remove-favorite" ng-click="toggleFavorite(venue)">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="venue-info">
+                            <h3>{{venue.name}}</h3>
+                            <p class="venue-location"><i class="fas fa-map-marker-alt"></i> {{venue.location}}</p>
+                            <p class="venue-price">{{venue.price}}</p>
+                            <div class="venue-features">
+                                <span ng-repeat="feature in venue.features"><i class="fas fa-check"></i> {{feature}}</span>
+                            </div>
+                            <div class="venue-actions">
+                                <button class="btn btn-primary">View Venue</button>
+                                <button class="btn btn-outline">Book Now</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="empty-state" ng-if="favoriteVenues.length === 0">
+                        <i class="fas fa-heart"></i>
+                        <p>No favorite venues yet</p>
+                        <button class="btn btn-primary">Explore Venues</button>
+                    </div>
+                </div>
+
+                <div class="favorites-grid" ng-show="favoriteTab === 'events'">
+                    <div class="event-card" ng-repeat="event in favoriteEvents">
+                        <div class="event-image">
+                            <img ng-src="{{event.image}}" alt="{{event.name}}">
+                            <div class="event-date">
+                                <span class="day">{{event.date.day}}</span>
+                                <span class="month">{{event.date.month}}</span>
+                            </div>
+                            <button class="remove-favorite" ng-click="toggleFavorite(event)">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="event-info">
+                            <h3>{{event.name}}</h3>
+                            <p class="event-location"><i class="fas fa-map-marker-alt"></i> {{event.location}}</p>
+                            <p class="event-time"><i class="fas fa-clock"></i> {{event.time}}</p>
+                            <p class="event-price">{{event.price}}</p>
+                            <div class="event-actions">
+                                <button class="btn btn-primary">View Event</button>
+                                <button class="btn btn-outline">Book Now</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="empty-state" ng-if="favoriteEvents.length === 0">
+                        <i class="fas fa-heart"></i>
+                        <p>No favorite events yet</p>
+                        <button class="btn btn-primary">Explore Events</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Content -->
+            <div class="dashboard-content" ng-show="activeTab === 'messages'">
+                <div class="content-header">
+                    <h2>Messages</h2>
+                    <div class="content-actions">
+                        <button class="btn btn-primary">
+                            <i class="fas fa-plus"></i> New Message
+                        </button>
+                    </div>
+                </div>
+
+                <div class="messages-container">
+                    <div class="contacts-sidebar">
+                        <div class="search-contacts">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search contacts...">
+                        </div>
+                        <div class="contacts-list">
+                            <div class="contact-item" ng-repeat="contact in contacts" ng-class="{'active': selectedContact.id === contact.id}" ng-click="selectContact(contact)">
+                                <div class="contact-avatar">
+                                    <img ng-src="{{contact.avatar || '/placeholder.svg?height=40&width=40'}}" alt="{{contact.name}}">
+                                    <span class="status-indicator" ng-class="{'online': contact.isOnline}"></span>
+                                </div>
+                                <div class="contact-info">
+                                    <h4>{{contact.name}}</h4>
+                                    <p>{{contact.lastMessage}}</p>
+                                </div>
+                                <div class="contact-meta">
+                                    <span class="time">{{contact.lastMessageTime}}</span>
+                                    <span class="unread-badge" ng-if="contact.unreadCount > 0">{{contact.unreadCount}}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-container" ng-if="selectedContact">
+                        <div class="chat-header">
+                            <div class="chat-contact">
+                                <img ng-src="{{selectedContact.avatar || '/placeholder.svg?height=40&width=40'}}" alt="{{selectedContact.name}}">
+                                <div class="contact-info">
+                                    <h4>{{selectedContact.name}}</h4>
+                                    <p ng-if="selectedContact.isOnline">Online</p>
+                                    <p ng-if="!selectedContact.isOnline">Offline</p>
+                                </div>
+                            </div>
+                            <div class="chat-actions">
+                                <button class="btn btn-icon">
+                                    <i class="fas fa-phone"></i>
+                                </button>
+                                <button class="btn btn-icon">
+                                    <i class="fas fa-video"></i>
+                                </button>
+                                <button class="btn btn-icon">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chat-messages">
+                            <div class="message-date-divider">
+                                <span>Today</span>
+                            </div>
+                            <div class="message" ng-repeat="message in selectedContact.messages" ng-class="{'outgoing': message.sender === 'me', 'incoming': message.sender !== 'me'}">
+                                <div class="message-content">
+                                    <p>{{message.text}}</p>
+                                    <span class="message-time">{{message.time}}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input">
+                            <button class="btn btn-icon">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <input type="text" placeholder="Type a message..." ng-model="newMessage">
+                            <button class="btn btn-icon send-btn" ng-click="sendMessage()">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="empty-chat" ng-if="!selectedContact">
+                        <i class="fas fa-comments"></i>
+                        <h3>Select a contact to start messaging</h3>
+                        <p>You can communicate with vendors and venues about your bookings</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="dashboard-content" ng-show="activeTab === 'profile'">
+                <div class="content-header">
+                    <h2>My Profile</h2>
+                    <div class="content-actions">
+                        <button class="btn btn-primary" ng-click="saveProfile()">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <div class="profile-container">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <img ng-src="{{user.avatar || '/placeholder.svg?height=100&width=100'}}" alt="{{user.name}}">
+                            <div class="avatar-upload">
+                                <label for="avatar-input">
+                                    <i class="fas fa-camera"></i>
+                                </label>
+                                <input type="file" id="avatar-input" accept="image/*">
+                            </div>
+                        </div>
+                        <div class="profile-info">
+                            <h3>{{user.name}}</h3>
+                            <p>Client</p>
+                        </div>
+                    </div>
+
+                    <div class="profile-form">
+                        <div class="form-section">
+                            <h3>Personal Information</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="fullName">Full Name</label>
+                                    <input type="text" id="fullName" ng-model="profile.fullName">
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="email" id="email" ng-model="profile.email">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="phone">Phone Number</label>
+                                    <input type="tel" id="phone" ng-model="profile.phone">
+                                </div>
+                                <div class="form-group">
+                                    <label for="location">Location</label>
+                                    <input type="text" id="location" ng-model="profile.location">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="bio">Bio</label>
+                                <textarea id="bio" ng-model="profile.bio" rows="4"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Preferences</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="eventTypes">Preferred Event Types</label>
+                                    <select id="eventTypes" ng-model="profile.eventTypes" multiple>
+                                        <option value="wedding">Wedding</option>
+                                        <option value="corporate">Corporate</option>
+                                        <option value="birthday">Birthday</option>
+                                        <option value="social">Social Gathering</option>
+                                        <option value="concert">Concert</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="budget">Budget Range</label>
+                                    <select id="budget" ng-model="profile.budget">
+                                        <option value="low">$0 - $1,000</option>
+                                        <option value="medium">$1,000 - $5,000</option>
+                                        <option value="high">$5,000 - $15,000</option>
+                                        <option value="luxury">$15,000+</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Notification Settings</h3>
+                            <div class="form-group checkbox-group">
+                                <label>
+                                    <input type="checkbox" ng-model="profile.notifications.email">
+                                    Email Notifications
+                                </label>
+                            </div>
+                            <div class="form-group checkbox-group">
+                                <label>
+                                    <input type="checkbox" ng-model="profile.notifications.sms">
+                                    SMS Notifications
+                                </label>
+                            </div>
+                            <div class="form-group checkbox-group">
+                                <label>
+                                    <input type="checkbox" ng-model="profile.notifications.push">
+                                    Push Notifications
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Content -->
+            <div class="dashboard-content" ng-show="activeTab === 'settings'">
+                <div class="content-header">
+                    <h2>Settings</h2>
+                    <div class="content-actions">
+                        <button class="btn btn-primary" ng-click="saveSettings()">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <div class="settings-container">
+                    <div class="settings-sidebar">
+                        <ul>
+                            <li ng-class="{'active': settingsTab === 'account'}" ng-click="setSettingsTab('account')">
+                                <i class="fas fa-user-circle"></i> Account
+                            </li>
+                            <li ng-class="{'active': settingsTab === 'security'}" ng-click="setSettingsTab('security')">
+                                <i class="fas fa-lock"></i> Security
+                            </li>
+                            <li ng-class="{'active': settingsTab === 'notifications'}" ng-click="setSettingsTab('notifications')">
+                                <i class="fas fa-bell"></i> Notifications
+                            </li>
+                            <li ng-class="{'active': settingsTab === 'payment'}" ng-click="setSettingsTab('payment')">
+                                <i class="fas fa-credit-card"></i> Payment Methods
+                            </li>
+                            <li ng-class="{'active': settingsTab === 'privacy'}" ng-click="setSettingsTab('privacy')">
+                                <i class="fas fa-shield-alt"></i> Privacy
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="settings-content">
+                        <!-- Account Settings -->
+                        <div class="settings-section" ng-show="settingsTab === 'account'">
+                            <h3>Account Settings</h3>
+                            <div class="form-group">
+                                <label for="settingsEmail">Email</label>
+                                <input type="email" id="settingsEmail" ng-model="settings.email">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsUsername">Username</label>
+                                <input type="text" id="settingsUsername" ng-model="settings.username">
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsLanguage">Language</label>
+                                <select id="settingsLanguage" ng-model="settings.language">
+                                    <option value="en">English</option>
+                                    <option value="es">Spanish</option>
+                                    <option value="fr">French</option>
+                                    <option value="de">German</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="settingsTimezone">Timezone</label>
+                                <select id="settingsTimezone" ng-model="settings.timezone">
+                                    <option value="utc">UTC</option>
+                                    <option value="est">Eastern Time</option>
+                                    <option value="cst">Central Time</option>
+                                    <option value="pst">Pacific Time</option>
+                                </select>
+                            </div>
+                            <div class="danger-zone">
+                                <h4>Danger Zone</h4>
+                                <button class="btn btn-danger">Deactivate Account</button>
+                                <button class="btn btn-danger">Delete Account</button>
+                            </div>
+                        </div>
+
+                        <!-- Security Settings -->
+                        <div class="settings-section" ng-show="settingsTab === 'security'">
+                            <h3>Security Settings</h3>
+                            <div class="form-group">
+                                <label for="currentPassword">Current Password</label>
+                                <input type="password" id="currentPassword" ng-model="security.currentPassword">
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword">New Password</label>
+                                <input type="password" id="newPassword" ng-model="security.newPassword">
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Confirm New Password</label>
+                                <input type="password" id="confirmPassword" ng-model="security.confirmPassword">
+                            </div>
+                            <button class="btn btn-primary">Change Password</button>
+
+                            <div class="form-section">
+                                <h4>Two-Factor Authentication</h4>
+                                <div class="form-group toggle-group">
+                                    <label>Enable Two-Factor Authentication</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="twoFactorAuth" ng-model="security.twoFactorAuth">
+                                        <label for="twoFactorAuth"></label>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline" ng-if="security.twoFactorAuth">Setup Two-Factor Authentication</button>
+                            </div>
+
+                            <div class="form-section">
+                                <h4>Login Sessions</h4>
+                                <div class="sessions-list">
+                                    <div class="session-item" ng-repeat="session in security.sessions">
+                                        <div class="session-info">
+                                            <i class="fas fa-desktop"></i>
+                                            <div>
+                                                <h5>{{session.device}}</h5>
+                                                <p>{{session.location}} • {{session.lastActive}}</p>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-danger btn-sm" ng-if="!session.current">Logout</button>
+                                        <span class="current-badge" ng-if="session.current">Current</span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-danger">Logout from All Devices</button>
+                            </div>
+                        </div>
+
+                        <!-- Notification Settings -->
+                        <div class="settings-section" ng-show="settingsTab === 'notifications'">
+                            <h3>Notification Settings</h3>
+                            <div class="notification-group">
+                                <h4>Email Notifications</h4>
+                                <div class="form-group toggle-group">
+                                    <label>Booking Updates</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="emailBooking" ng-model="notifications.email.booking">
+                                        <label for="emailBooking"></label>
+                                    </div>
+                                </div>
+                                <div class="form-group toggle-group">
+                                    <label>Messages</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="emailMessages" ng-model="notifications.email.messages">
+                                        <label for="emailMessages"></label>
+                                    </div>
+                                </div>
+                                <div class="form-group toggle-group">
+                                    <label>Promotions and Offers</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="emailPromotions" ng-model="notifications.email.promotions">
+                                        <label for="emailPromotions"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="notification-group">
+                                <h4>SMS Notifications</h4>
+                                <div class="form-group toggle-group">
+                                    <label>Booking Updates</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="smsBooking" ng-model="notifications.sms.booking">
+                                        <label for="smsBooking"></label>
+                                    </div>
+                                </div>
+                                <div class="form-group toggle-group">
+                                    <label>Messages</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="smsMessages" ng-model="notifications.sms.messages">
+                                        <label for="smsMessages"></label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="notification-group">
+                                <h4>Push Notifications</h4>
+                                <div class="form-group toggle-group">
+                                    <label>Booking Updates</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="pushBooking" ng-model="notifications.push.booking">
+                                        <label for="pushBooking"></label>
+                                    </div>
+                                </div>
+                                <div class="form-group toggle-group">
+                                    <label>Messages</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="pushMessages" ng-model="notifications.push.messages">
+                                        <label for="pushMessages"></label>
+                                    </div>
+                                </div>
+                                <div class="form-group toggle-group">
+                                    <label>Promotions and Offers</label>
+                                    <div class="toggle-switch">
+                                        <input type="checkbox" id="pushPromotions" ng-model="notifications.push.promotions">
+                                        <label for="pushPromotions"></label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Methods -->
+                        <div class="settings-section" ng-show="settingsTab === 'payment'">
+                            <h3>Payment Methods</h3>
+                            <div class="payment-methods">
+                                <div class="payment-card" ng-repeat="card in paymentMethods">
+                                    <div class="card-icon">
+                                        <i class="fab" ng-class="{'fa-cc-visa': card.type === 'visa', 'fa-cc-mastercard': card.type === 'mastercard', 'fa-cc-amex': card.type === 'amex'}"></i>
+                                    </div>
+                                    <div class="card-info">
+                                        <h4>{{card.name}}</h4>
+                                        <p>**** **** **** {{card.last4}}</p>
+                                        <p>Expires {{card.expMonth}}/{{card.expYear}}</p>
+                                    </div>
+                                    <div class="card-actions">
+                                        <button class="btn btn-outline btn-sm" ng-if="!card.default">Set as Default</button>
+                                        <span class="default-badge" ng-if="card.default">Default</span>
+                                        <button class="btn btn-danger btn-sm">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Payment Method
+                            </button>
+                        </div>
+
+                        <!-- Privacy Settings -->
+                        <div class="settings-section" ng-show="settingsTab === 'privacy'">
+                            <h3>Privacy Settings</h3>
+                            <div class="form-group toggle-group">
+                                <label>Show my profile to vendors</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="showProfile" ng-model="privacy.showProfile">
+                                    <label for="showProfile"></label>
+                                </div>
+                            </div>
+                            <div class="form-group toggle-group">
+                                <label>Allow vendors to contact me</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="allowContact" ng-model="privacy.allowContact">
+                                    <label for="allowContact"></label>
+                                </div>
+                            </div>
+                            <div class="form-group toggle-group">
+                                <label>Share my booking history with vendors</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="shareHistory" ng-model="privacy.shareHistory">
+                                    <label for="shareHistory"></label>
+                                </div>
+                            </div>
+                            <div class="form-group toggle-group">
+                                <label>Allow data collection for personalized recommendations</label>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="dataCollection" ng-model="privacy.dataCollection">
+                                    <label for="dataCollection"></label>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline">Download My Data</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../scripts/app.js"></script>
+    <script src="../scripts/controllers/clientController.js"></script>
+</body>
+</html>

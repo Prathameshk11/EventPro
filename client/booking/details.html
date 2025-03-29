@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="eventApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Details - EventPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="../styles/main.css">
+    <link rel="stylesheet" href="../styles/booking.css">
+</head>
+<body ng-controller="BookingDetailsController">
+    <header class="main-header">
+        <div class="container">
+            <div class="logo">
+                <a href="../index.html">
+                    <h1>Event<span>Pro</span></h1>
+                </a>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="../index.html#services">Services</a></li>
+                    <li><a href="../index.html#venues">Venues</a></li>
+                    <li><a href="../index.html#about">About</a></li>
+                    <li><a href="../index.html#contact">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions">
+                <div class="user-menu" ng-if="isLoggedIn">
+                    <img ng-src="{{currentUser.avatar || '/placeholder.svg?height=40&width=40'}}" alt="User Avatar" class="user-avatar">
+                    <span class="user-name">{{currentUser.name}}</span>
+                    <div class="dropdown-menu">
+                        <a ng-href="{{currentUser.role === 'client' ? '../client/dashboard.html' : '../vendor/dashboard.html'}}">Dashboard</a>
+                        <a href="#" ng-click="logout()">Logout</a>
+                    </div>
+                </div>
+                <div ng-if="!isLoggedIn">
+                    <a href="../login.html" class="btn btn-secondary">Login</a>
+                    <a href="../signup.html" class="btn btn-primary">Sign Up</a>
+                </div>
+            </div>
+            <button class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="booking-details-page">
+        <div class="container">
+            <div class="booking-header">
+                <h1>Booking Details</h1>
+                <div class="booking-status" ng-class="booking.status">
+                    <span class="status-label">{{capitalize(booking.status)}}</span>
+                </div>
+            </div>
+
+            <div class="booking-content">
+                <div class="booking-info-card">
+                    <div class="booking-info-header">
+                        <h2>Booking Information</h2>
+                        <div class="booking-id">ID: #{{booking.id}}</div>
+                    </div>
+                    <div class="booking-info-body">
+                        <div class="info-row">
+                            <div class="info-label">Service:</div>
+                            <div class="info-value">{{booking.service}}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Date:</div>
+                            <div class="info-value">{{booking.date}}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Time:</div>
+                            <div class="info-value">{{booking.time}}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Location:</div>
+                            <div class="info-value">{{booking.location}}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Price:</div>
+                            <div class="info-value">{{booking.price}}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Payment Status:</div>
+                            <div class="info-value" ng-class="booking.paymentStatus">{{capitalize(booking.paymentStatus)}}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="booking-parties">
+                    <div class="client-info card">
+                        <div class="card-header">
+                            <h3>Client</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="profile-info">
+                                <img ng-src="{{booking.client.avatar || '/placeholder.svg?height=80&width=80'}}" alt="Client Avatar" class="profile-avatar">
+                                <div class="profile-details">
+                                    <h4>{{booking.client.name}}</h4>
+                                    <p><i class="fas fa-envelope"></i> {{booking.client.email}}</p>
+                                    <p><i class="fas fa-phone"></i> {{booking.client.phone}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="vendor-info card">
+                        <div class="card-header">
+                            <h3>Vendor</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="profile-info">
+                                <img ng-src="{{booking.vendor.avatar || '/placeholder.svg?height=80&width=80'}}" alt="Vendor Avatar" class="profile-avatar">
+                                <div class="profile-details">
+                                    <h4>{{booking.vendor.name}}</h4>
+                                    <p><i class="fas fa-tag"></i> {{booking.vendor.category}}</p>
+                                    <p><i class="fas fa-envelope"></i> {{booking.vendor.email}}</p>
+                                    <p><i class="fas fa-phone"></i> {{booking.vendor.phone}}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="booking-details-card">
+                    <div class="card-header">
+                        <h3>Event Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="event-details">
+                            <p>{{booking.eventDetails}}</p>
+                        </div>
+                        <div class="special-requests" ng-if="booking.specialRequests">
+                            <h4>Special Requests</h4>
+                            <p>{{booking.specialRequests}}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="booking-timeline">
+                    <div class="timeline-header">
+                        <h3>Booking Timeline</h3>
+                    </div>
+                    <div class="timeline">
+                        <div class="timeline-item" ng-repeat="event in booking.timeline">
+                            <div class="timeline-icon" ng-class="event.type">
+                                <i class="fas" ng-class="getTimelineIcon(event.type)"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>{{event.title}}</h4>
+                                <p class="timeline-date">{{event.date}} - {{event.time}}</p>
+                                <p>{{event.description}}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="booking-actions" ng-if="currentUser.role === 'client' && booking.status === 'pending'">
+                    <button class="btn btn-danger" ng-click="cancelBooking()">Cancel Booking</button>
+                </div>
+
+                <div class="booking-actions" ng-if="currentUser.role === 'vendor' && booking.status === 'pending'">
+                    <button class="btn btn-success" ng-click="acceptBooking()">Accept Booking</button>
+                    <button class="btn btn-danger" ng-click="declineBooking()">Decline Booking</button>
+                </div>
+
+                <div class="booking-actions" ng-if="booking.status === 'confirmed' && booking.paymentStatus !== 'paid' && currentUser.role === 'client'">
+                    <button class="btn btn-primary" ng-click="proceedToPayment()">Proceed to Payment</button>
+                </div>
+
+                <div class="booking-chat" ng-if="booking.status === 'confirmed'">
+                    <div class="chat-header">
+                        <h3>Messages</h3>
+                    </div>
+                    <div class="chat-messages">
+                        <div class="message" ng-repeat="message in booking.messages" ng-class="{'message-sent': message.sender === currentUser.role, 'message-received': message.sender !== currentUser.role}">
+                            <div class="message-avatar">
+                                <img ng-src="{{message.avatar || '/placeholder.svg?height=40&width=40'}}" alt="Avatar">
+                            </div>
+                            <div class="message-content">
+                                <div class="message-info">
+                                    <span class="message-sender">{{message.senderName}}</span>
+                                    <span class="message-time">{{message.time}}</span>
+                                </div>
+                                <div class="message-text">{{message.text}}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input">
+                        <textarea ng-model="newMessage" placeholder="Type your message here..."></textarea>
+                        <button class="btn btn-primary" ng-click="sendMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <h2>Event<span>Pro</span></h2>
+                    <p>Your one-stop platform for all event management needs.</p>
+                </div>
+                <div class="footer-links">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="../index.html">Home</a></li>
+                        <li><a href="../index.html#services">Services</a></li>
+                        <li><a href="../index.html#venues">Venues</a></li>
+                        <li><a href="../index.html#about">About</a></li>
+                        <li><a href="../index.html#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h3>Contact Us</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Event Street, New York, NY 10001</p>
+                    <p><i class="fas fa-phone"></i> (123) 456-7890</p>
+                    <p><i class="fas fa-envelope"></i> info@eventpro.com</p>
+                </div>
+                <div class="footer-social">
+                    <h3>Follow Us</h3>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2023 EventPro. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="../scripts/app.js"></script>
+    <script src="../scripts/services/authService.js"></script>
+    <script src="../scripts/services/bookingService.js"></script>
+    <script src="../scripts/controllers/bookingController.js"></script>
+</body>
+</html>
+
